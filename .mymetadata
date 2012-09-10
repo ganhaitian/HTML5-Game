@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project-module
+  type="WEB"
+  name="slidepuzzle"
+  id="myeclipse.1347237553943"
+  context-root="/slidepuzzle"
+  j2ee-spec="5.0"
+  archive="slidepuzzle.war">
+  <attributes>
+    <attribute name="webrootdir" value="WebRoot" />
+  </attributes>
+</project-module>
+
