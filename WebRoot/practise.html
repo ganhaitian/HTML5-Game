@@ -24,6 +24,9 @@
 	
 		var imgBlocks=[];
 		var indexs=[];
+		var mousePressed;
+		var selBlock;
+		var interval=0;
 		
 		for(var index=0;index<12;index++)
 			indexs.push(index);	
@@ -38,17 +41,48 @@
 			backColor:'#000000',
 			draw:function(){
 				context.fillStyle=this.backColor;
-				context.fillRect(0,0,320,533);
+				//context.fillRect(0,0,320,533);
+				//context.fill();
 				this.renderChildren();
 			},
 			renderChildren:function(){
-				$.each(this.items,function(child){
+				$.each(this.items,function(index,child){
 					child.draw();
 				});
 			},
 			items:[],
 			add:function(child){
 				this.items.push(child);
+			},
+			getBlock:function(_x,_y){
+				var b;
+				$.each(this.items,function(index,block){
+					if(block.h_s==Math.floor(_x/BLOCK_WIDTH)&&
+					   block.v_s==Math.floor(_y/BLOCK_HEIGHT))
+					   	b=block;
+				});
+				
+				if(b){
+					b.selected=true;
+					b.offX=_x-BLOCK_WIDTH*b.h_s;
+					b.offY=_y-BLOCK_HEIGHT*b.v_s;
+					return b;
+				}			
+			},
+			transform:function(source,target){
+			
+				if(source!=target){
+					var tmpX=source.h_s;
+					var tmpY=source.v_s;
+					source.h_s=target.h_s;
+					source.v_s=target.v_s;
+					target.h_s=tmpX;
+					target.v_s=tmpY;
+				}
+				
+				source.reset();
+				target.reset();
+				refresh();
 			}
 		};
 		
@@ -59,45 +93,116 @@
 			this.h_s=h_s;
 			
 			this.draw=function(){
+			
+				if(!this.selected){
+					context.drawImage(
+						puzzleImage,
+						this.h*BLOCK_WIDTH,
+						this.v*BLOCK_HEIGHT,
+						BLOCK_WIDTH,
+						BLOCK_HEIGHT,
+						this.h_s*BLOCK_WIDTH,
+						this.v_s*BLOCK_HEIGHT,
+						BLOCK_WIDTH,
+						BLOCK_HEIGHT);
+						
+					context.strokeRect(
+						this.h_s*BLOCK_WIDTH,
+						this.v_s*BLOCK_HEIGHT,
+						BLOCK_WIDTH,
+						BLOCK_HEIGHT);
+				}else{
+					context.fillStyle=this.backColor;
+					context.fillRect(this.h_s,this.v_s,BLOCK_WIDTH,BLOCK_HEIGHT);
+				}	
+			};
+			
+			this.moveTo=function(x,y){
+			
+				refresh();
+				
 				context.drawImage(
 					puzzleImage,
 					this.h*BLOCK_WIDTH,
 					this.v*BLOCK_HEIGHT,
 					BLOCK_WIDTH,
 					BLOCK_HEIGHT,
-					this.h_s*BLOCK_WIDTH,
-					this.v_s*BLOCK_HEIGHT,
+					x-this.offX+5,
+					y-this.offY+5,
 					BLOCK_WIDTH,
 					BLOCK_HEIGHT);
-			};
+				
+				context.strokeRect(
+					x-this.offX+5,
+					y-this.offY+5,
+					BLOCK_WIDTH,
+					BLOCK_HEIGHT);
+			}
+			
+			this.reset=function(){
+				this.offX=0;
+				this.offY=0;
+				this.selected=false;
+			}
 		};
 	
 		$(document).ready(function(){
 			canvas=$('#lookwhatIdrew')[0];
 			
 			context=canvas.getContext("2d");
+			context.globalCompositeOperation ="source-over";
 			
 			canvas.onmousedown=function(e){
-				control=true;
-				//alert('down');
+				mousePressed=true;
 			};
 			
 			canvas.onmouseup=function(e){
-				control=false;
-				//alert('up');
+				mousePressed=false;
+				
+				x = e.clientX - e.target.offsetLeft;
+            	y = e.clientY - e.target.offsetTop;
+            		
+            	var mpX=(Math.floor((x-selBlock.offX)/BLOCK_WIDTH)+1)*BLOCK_WIDTH;
+            	var mpY=(Math.floor((y-selBlock.offY)/BLOCK_HEIGHT)+1)*BLOCK_HEIGHT;
+            	
+            	if(mpX<((x-selBlock.offX)+BLOCK_WIDTH/2))
+            		mpX=x-selBlock.offX+BLOCK_WIDTH;
+            	else
+            		mpX=x-selBlock.offX;
+            	
+            	if(mpY<((y-selBlock.offY)+BLOCK_HEIGHT/2))
+            		mpY=y-selBlock.offY+BLOCK_HEIGHT;
+            	else
+            		mpY=y-selBlock.offY;
+            		
+            	mainPanel.transform(selBlock,mainPanel.getBlock(x,y));         	
+				selBlock=null;
 			};
 			
 			canvas.onmousemove=function(e){
-				
+				if(mousePressed){						
+					
+					if(interval>0&&interval%100!=0){
+						interval=interval+1;
+						return;
+					}
+					
+					interval=0;
+					
+					x = e.clientX - e.target.offsetLeft;
+            		y = e.clientY - e.target.offsetTop;
+					
+            		if(!selBlock)
+            			selBlock=mainPanel.getBlock(x,y);
+            		else
+            			selBlock.moveTo(x,y);
+				}
 			};
-			//context.drawImage(puzzleImage,0,0,320,533);
-			initImage();
-			
+
+			initImage();		
 			refresh();
-			
 			context.stroke();
-			//context.fillRect(10,10,100,100);
-			//drawDiagonal();
+			
 		});
 		
 		function initImage(){
@@ -114,16 +219,6 @@
 				h_s=(indexs.length-1)%3;
 				
 				mainPanel.add(new block(v,h,v_s,h_s));
-				//context.drawImage(
-				//	puzzleImage,
-				//	h*BLOCK_WIDTH,
-				//	v*BLOCK_HEIGHT,
-				//	BLOCK_WIDTH,
-				//	BLOCK_HEIGHT,
-				//	h_s*BLOCK_WIDTH,
-				//	v_s*BLOCK_HEIGHT,
-				//	BLOCK_WIDTH,
-				//	BLOCK_HEIGHT);
 				indexs.splice(random,1);
 			}
 		}
@@ -131,16 +226,6 @@
 		function refresh(){
 			mainPanel.draw();
 			context.fill();
-		}
-		
-		function drawDiagonal(){
-			var context=$('#lookwhatIdrew')[0].getContext('2d');
-			
-			context.beginPath();
-			context.moveTo(70,140);
-			context.lineTo(140,70);
-			
-			context.stroke();
 		}
 		
 	</script>
