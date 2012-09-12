@@ -32,7 +32,9 @@
 			indexs.push(index);	
 		
 		var puzzleImage=new Image();
-		puzzleImage.src="./test.jpg";
+		puzzleImage.src="test.jpg";
+		//puzzleImage.height=533;
+		//puzzleImage.width=320;
 	
 		BLOCK_WIDTH=107;
 		BLOCK_HEIGHT=134;
@@ -95,16 +97,20 @@
 			this.draw=function(){
 			
 				if(!this.selected){
+					
+					//alert("h_s:"+this.h_s+" v_s:"+this.v_s+" h:"+this.h+" v:"+this.v);
+				
 					context.drawImage(
 						puzzleImage,
 						this.h*BLOCK_WIDTH,
 						this.v*BLOCK_HEIGHT,
-						BLOCK_WIDTH,
-						BLOCK_HEIGHT,
+						Math.min(BLOCK_WIDTH,320-this.h*BLOCK_WIDTH),
+						Math.min(BLOCK_HEIGHT,533-this.v*BLOCK_HEIGHT),
 						this.h_s*BLOCK_WIDTH,
 						this.v_s*BLOCK_HEIGHT,
-						BLOCK_WIDTH,
-						BLOCK_HEIGHT);
+						Math.min(BLOCK_WIDTH,320-this.h*BLOCK_WIDTH),
+						Math.min(BLOCK_HEIGHT,533-this.v*BLOCK_HEIGHT)
+						);
 						
 					context.strokeRect(
 						this.h_s*BLOCK_WIDTH,
@@ -115,7 +121,7 @@
 					context.fill();
 					
 				}else{
-					context.fillStyle=this.backColor;
+					//context.fillStyle='#000000';
 					context.fillRect(this.h_s*BLOCK_WIDTH,this.v_s*BLOCK_HEIGHT,BLOCK_WIDTH,BLOCK_HEIGHT);
 				}	
 			};
@@ -128,8 +134,8 @@
 					puzzleImage,
 					this.h*BLOCK_WIDTH,
 					this.v*BLOCK_HEIGHT,
-					BLOCK_WIDTH,
-					BLOCK_HEIGHT,
+					Math.min(BLOCK_WIDTH,320-this.h*BLOCK_WIDTH),
+					Math.min(BLOCK_HEIGHT,533-this.v*BLOCK_HEIGHT),
 					x-this.offX+5,
 					y-this.offY+5,
 					BLOCK_WIDTH,
@@ -148,12 +154,18 @@
 				this.selected=false;
 			}
 		};
+		
 	
-		$(document).ready(function(){
+		//$(document).ready(function(){
+		puzzleImage.onload = function () {
 			canvas=$('#lookwhatIdrew')[0];
 			
 			context=canvas.getContext("2d");
+			context.fillStyle="#000000";
 			context.globalCompositeOperation ="source-over";
+			
+			//context.drawImage(puzzleImage,0,402,132,132,0,0,134,134);
+			//return;
 			
 			canvas.onmousedown=function(e){
 				mousePressed=true;
@@ -206,7 +218,8 @@
 			refresh();
 			context.stroke();
 			
-		});
+		//});
+		};
 		
 		function initImage(){
 			var random;
@@ -215,7 +228,7 @@
 			var v_s;
 			var h_s;
 			while(indexs.length>0){
-				random=Math.floor(Math.random()*11);
+				random=Math.floor(Math.random()*(indexs.length-1));
 				v=Math.floor(indexs[random]/3);
 				h=indexs[random]%3;
 				v_s=Math.floor((indexs.length-1)/3);
