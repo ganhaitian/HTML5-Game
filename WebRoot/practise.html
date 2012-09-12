@@ -111,9 +111,12 @@
 						this.v_s*BLOCK_HEIGHT,
 						BLOCK_WIDTH,
 						BLOCK_HEIGHT);
+					
+					context.fill();
+					
 				}else{
 					context.fillStyle=this.backColor;
-					context.fillRect(this.h_s,this.v_s,BLOCK_WIDTH,BLOCK_HEIGHT);
+					context.fillRect(this.h_s*BLOCK_WIDTH,this.v_s*BLOCK_HEIGHT,BLOCK_WIDTH,BLOCK_HEIGHT);
 				}	
 			};
 			
